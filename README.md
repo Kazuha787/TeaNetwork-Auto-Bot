@@ -1,5 +1,7 @@
 ## TEA NETWORK Bot
 Tea Network Bot 🚀 by Kazuha 🌟 automates Ethereum contract deployment 📜 and ETH transfers 💸. Send ETH to burn/KYC wallets 🔥💼 with 35-second intervals ⏳. Simple CLI 🖥️, real-time updates ✅❌. Clone, configure `.env` 💼, and start automating! 🎉
+
+Register Here https://tea.xyz/sepolia
 ## 📢 Join Our Community
 
 # Telegram Channel: .[Channel](https://t.me/Offical_Im_kazuha)
