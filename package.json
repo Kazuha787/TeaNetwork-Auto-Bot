@@ -1,0 +1,27 @@
+{
+  "name": "tea-network",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0",
+    "axios": "^1.8.4",
+    "blessed": "^0.1.81",
+    "chalk": "^5.4.1",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "figlet": "^1.8.0",
+    "fs": "^0.0.1-security",
+    "https-proxy-agent": "^7.0.6",
+    "neo-blessed": "^0.2.0",
+    "readline": "^1.3.0",
+    "solc": "^0.8.29"
+  }
+}
