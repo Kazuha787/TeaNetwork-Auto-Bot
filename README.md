@@ -49,11 +49,20 @@ Node.js v18+
    ```bash
    nano .env
    ```
+4 For Multiple Accounts 
+```
+nano accounts txt
+```
 
 ## Usage
 
-- **Start the bot**:
+- **Start the bot**: For single Accounts
 
   ```bash
   node main.js
   ```
+- **Start the bot**: For Multiple Accounts
+  ```
+  node multi.js
+  ```
+  thanks 👍 
