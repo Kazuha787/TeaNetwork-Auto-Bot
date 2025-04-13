@@ -81,3 +81,108 @@ clearItems = do
     when (map toLower confirm == "yes") $ do
         writeFile todoFile ""
         putStrLn "All items cleared!"
+
+{-# LANGUAGE OverloadedStrings #-}
+
+import Data.Char (isSpace)
+import Data.List (isPrefixOf, dropWhileEnd)
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
+import System.Environment (getArgs)
+
+data Markdown
+    = Heading Int T.Text
+    | Paragraph T.Text
+    | Bold T.Text
+    | Italic T.Text
+    | List [T.Text]
+    | CodeBlock [T.Text]
+    deriving Show
+
+-- Main program
+main :: IO ()
+main = do
+    args <- getArgs
+    case args of
+        [filename] -> do
+            content <- TIO.readFile filename
+            let parsed = parseMarkdown $ T.lines content
+            TIO.putStrLn $ renderHTML parsed
+        _ -> putStrLn "Usage: runhaskell MarkdownParser.hs <filename.md>"
+
+-- Parse the entire Markdown document
+parseMarkdown :: [T.Text] -> [Markdown]
+parseMarkdown [] = []
+parseMarkdown (l:ls)
+    | T.null l = parseMarkdown ls
+    | isHeading l = let (h, rest) = parseHeading (l:ls) in h : parseMarkdown rest
+    | isCodeBlockStart l = let (cb, rest) = parseCodeBlock (l:ls) in cb : parseMarkdown rest
+    | isListItem l = let (li, rest) = parseList (l:ls) in li : parseMarkdown rest
+    | otherwise = let (p, rest) = parseParagraph (l:ls) in p : parseMarkdown rest
+
+-- Helpers to identify line types
+isHeading :: T.Text -> Bool
+isHeading = T.isPrefixOf "#"
+
+isListItem :: T.Text -> Bool
+isListItem = T.isPrefixOf "- "
+
+isCodeBlockStart :: T.Text -> Bool
+isCodeBlockStart = (=="```")
+
+-- Parse heading
+parseHeading :: [T.Text] -> (Markdown, [T.Text])
+parseHeading (l:ls) =
+    let hashes = T.takeWhile (== '#') l
+        level = T.length hashes
+        content = T.strip $ T.dropWhile (== '#') l
+    in (Heading level content, ls)
+parseHeading [] = error "Unexpected end in parseHeading"
+
+-- Parse paragraph
+parseParagraph :: [T.Text] -> (Markdown, [T.Text])
+parseParagraph ls =
+    let (paraLines, rest) = break T.null ls
+        paragraph = T.intercalate " " paraLines
+    in (Paragraph (formatInline paragraph), dropWhile T.null rest)
+
+-- Parse list
+parseList :: [T.Text] -> (Markdown, [T.Text])
+parseList ls =
+    let (items, rest) = span isListItem ls
+        cleanItems = map (T.strip . T.drop 2) items
+    in (List cleanItems, dropWhile T.null rest)
+
+-- Parse code block
+parseCodeBlock :: [T.Text] -> (Markdown, [T.Text])
+parseCodeBlock (_:ls) =
+    let (codeLines, rest) = break (=="```") ls
+    in (CodeBlock codeLines, drop 1 rest)
+parseCodeBlock [] = error "Unexpected end in parseCodeBlock"
+
+-- Inline format
+formatInline :: T.Text -> T.Text
+formatInline = italicize . bolden
+  where
+    bolden = replaceAll "**" "<b>" "</b>"
+    italicize = replaceAll "*" "<i>" "</i>"
+
+-- Replace markdown syntax with HTML
+replaceAll :: T.Text -> T.Text -> T.Text -> T.Text -> T.Text
+replaceAll token openTag closeTag txt =
+    let parts = T.splitOn token txt
+        formatted = zipWith (\i t -> if even i then t else openTag <> t <> closeTag) [0..] parts
+    in T.concat formatted
+
+-- Render parsed markdown to HTML
+renderHTML :: [Markdown] -> T.Text
+renderHTML = T.concat . map renderBlock
+
+renderBlock :: Markdown -> T.Text
+renderBlock (Heading n t) = T.concat ["<h", sn, ">", t, "</h", sn, ">\n"]
+  where sn = T.pack (show n)
+renderBlock (Paragraph t) = T.concat ["<p>", t, "</p>\n"]
+renderBlock (Bold t) = T.concat ["<b>", t, "</b>"]
+renderBlock (Italic t) = T.concat ["<i>", t, "</i>"]
+renderBlock (List items) = T.concat ["<ul>\n", T.concat (map (\i -> T.concat ["<li>", i, "</li>\n"]) items), "</ul>\n"]
+renderBlock (CodeBlock lines) = T.concat ["<pre><code>\n", T.unlines lines, "</code></pre>\n"]
