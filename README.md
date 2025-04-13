@@ -63,6 +63,6 @@ nano accounts txt
   ```
 - **Start the bot**: For Multiple Accounts
   ```
-  node multi.js
+  node multp.js
   ```
   thanks 👍 
